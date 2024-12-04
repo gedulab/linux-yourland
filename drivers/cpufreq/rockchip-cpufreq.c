@@ -69,7 +69,7 @@ static int px30_get_soc_info(struct device *dev, struct device_node *np,
 				     "performance") >= 0) {
 		ret = rockchip_nvmem_cell_read_u8(np, "performance", &value);
 		if (ret) {
-			dev_err(dev, "Failed to get soc performance value\n");
+			pr_err("Failed to get soc performance value\n");
 			return ret;
 		}
 		*bin = value;
@@ -92,7 +92,7 @@ static int rk3288_get_soc_info(struct device *dev, struct device_node *np,
 	if (of_property_match_string(np, "nvmem-cell-names", "special") >= 0) {
 		ret = rockchip_nvmem_cell_read_u8(np, "special", &value);
 		if (ret) {
-			dev_err(dev, "Failed to get soc special value\n");
+			pr_err("Failed to get soc special value\n");
 			goto out;
 		}
 		if (value == 0xc)
@@ -109,7 +109,7 @@ static int rk3288_get_soc_info(struct device *dev, struct device_node *np,
 	if (of_property_match_string(np, "nvmem-cell-names", name) >= 0) {
 		ret = rockchip_nvmem_cell_read_u8(np, name, &value);
 		if (ret) {
-			dev_err(dev, "Failed to get soc performance value\n");
+			pr_err("Failed to get soc performance value\n");
 			goto out;
 		}
 		if (value & 0x2)
@@ -127,7 +127,7 @@ next:
 				     "process") >= 0) {
 		ret = rockchip_nvmem_cell_read_u8(np, "process", &value);
 		if (ret) {
-			dev_err(dev, "Failed to get soc process version\n");
+			pr_err("Failed to get soc process version\n");
 			goto out;
 		}
 		if (soc_is_rk3288() && (value == 0 || value == 1))
@@ -155,8 +155,7 @@ static int rk3399_get_soc_info(struct device *dev, struct device_node *np,
 						  "specification_serial_number",
 						  &value);
 		if (ret) {
-			dev_err(dev,
-				"Failed to get specification_serial_number\n");
+			pr_err("Failed to get specification_serial_number\n");
 			goto out;
 		}
 
@@ -169,7 +168,7 @@ static int rk3399_get_soc_info(struct device *dev, struct device_node *np,
 								  "customer_demand",
 								  &value);
 				if (ret) {
-					dev_err(dev, "Failed to get customer_demand\n");
+					pr_err("Failed to get customer_demand\n");
 					goto out;
 				}
 				if (value == 0x0)
@@ -229,8 +228,7 @@ static int rk3588_get_soc_info(struct device *dev, struct device_node *np,
 						  "specification_serial_number",
 						  &value);
 		if (ret) {
-			dev_err(dev,
-				"Failed to get specification_serial_number\n");
+			pr_err("Failed to get specification_serial_number\n");
 			return ret;
 		}
 		/* RK3588M */
@@ -261,7 +259,7 @@ static int rk3588_change_length(struct device *dev, struct device_node *np,
 
 	clk = clk_get(dev, NULL);
 	if (IS_ERR(clk)) {
-		dev_warn(dev, "failed to get cpu clk\n");
+		pr_warn("failed to get cpu clk\n");
 		return PTR_ERR(clk);
 	}
 
@@ -276,7 +274,7 @@ static int rk3588_change_length(struct device *dev, struct device_node *np,
 	old_rate = clk_get_rate(clk);
 	ret = clk_set_rate(clk, old_rate | opp_flag);
 	if (ret) {
-		dev_err(dev, "failed to change length\n");
+		pr_err("failed to change length\n");
 		goto out;
 	}
 	clk_set_rate(clk, old_rate);
@@ -373,7 +371,7 @@ static int rv1126_get_soc_info(struct device *dev, struct device_node *np,
 	if (of_property_match_string(np, "nvmem-cell-names", "performance") >= 0) {
 		ret = rockchip_nvmem_cell_read_u8(np, "performance", &value);
 		if (ret) {
-			dev_err(dev, "Failed to get soc performance value\n");
+			pr_err("Failed to get soc performance value\n");
 			return ret;
 		}
 		if (value == 0x1)
@@ -482,12 +480,12 @@ static int rockchip_cpufreq_cluster_init(int cpu, struct cluster_info *cluster)
 
 	np = of_parse_phandle(dev->of_node, "operating-points-v2", 0);
 	if (!np) {
-		dev_warn(dev, "OPP-v2 not supported\n");
+		pr_err("OPP-v2 not supported\n");
 		return -ENOENT;
 	}
 	ret = dev_pm_opp_of_get_sharing_cpus(dev, &cluster->cpus);
 	if (ret) {
-		dev_err(dev, "Failed to get sharing cpus\n");
+		pr_err("Failed to get sharing cpus\n");
 		of_node_put(np);
 		return ret;
 	}
@@ -509,7 +507,7 @@ static int rockchip_cpufreq_cluster_init(int cpu, struct cluster_info *cluster)
 	rockchip_get_opp_data(rockchip_cpufreq_of_match, opp_info);
 	ret = rockchip_init_opp_info(dev, opp_info, NULL, reg_name);
 	if (ret)
-		dev_err(dev, "failed to init opp info\n");
+		pr_err("failed to init opp info\n");
 
 	return ret;
 }
@@ -591,7 +589,7 @@ static int rockchip_cpufreq_add_monitor(struct cluster_info *cluster,
 	mdev_info = rockchip_system_monitor_register(dev, mdevp);
 	if (IS_ERR(mdev_info)) {
 		kfree(mdevp);
-		dev_err(dev, "failed to register system monitor\n");
+		pr_err("failed to register system monitor\n");
 		return -EINVAL;
 	}
 	mdev_info->devp = mdevp;
@@ -646,7 +644,7 @@ static int rockchip_cpufreq_add_bus_qos_req(struct cluster_info *cluster,
 					   FREQ_QOS_MIN,
 					   FREQ_QOS_MIN_DEFAULT_VALUE);
 		if (ret < 0) {
-			dev_err(dev, "failed to add cpu bus freq constraint\n");
+			pr_err("failed to add cpu bus freq constraint\n");
 			goto error;
 		}
 	}
@@ -844,7 +842,7 @@ static int __init rockchip_cpufreq_driver_init(void)
 
 		ret = rockchip_cpufreq_cluster_init(cpu, cluster);
 		if (ret) {
-			pr_err("Failed to initialize dvfs info cpu%d\n", cpu);
+			pr_err("Failed to initialize dvfs info cpu%d err %d\n", cpu, ret);
 			goto release_cluster_info;
 		}
 		list_add(&cluster->list_head, &cluster_info_list);
