@@ -1408,6 +1408,11 @@ static int rockchip_set_mux(struct rockchip_pin_bank *bank, int pin, int mux)
 		mask = 0x3;
 	}
 
+	if (reg == 0x98) {
+		pr_err("GDDBG: skip reg 0x98 for pin %d mask %d to save JTAG.", pin, mask);
+		return 0;
+	}
+
 	if (bank->recalced_mask & BIT(pin))
 		rockchip_get_recalced_mux(bank, pin, &reg, &bit, &mask);
 

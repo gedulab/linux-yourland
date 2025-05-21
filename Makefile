@@ -3,7 +3,7 @@ VERSION = 6
 PATCHLEVEL = 1
 SUBLEVEL = 115
 EXTRAVERSION =
-NAME = Curry Ramen
+NAME = GEWU ZHIZHI
 
 # *DOCUMENTATION*
 # To see a list of typical targets execute "make help"
