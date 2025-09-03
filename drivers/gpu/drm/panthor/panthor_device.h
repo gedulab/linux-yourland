@@ -101,6 +101,9 @@ struct panthor_device {
 
 	/** @clks: GPU clocks. */
 	struct {
+		/** @bus: Bus clock. This clock is optional. */
+		struct clk *bus;
+
 		/** @core: Core clock. */
 		struct clk *core;
 
@@ -411,8 +414,6 @@ static irqreturn_t panthor_ ## __name ## _irq_threaded_handler(int irq, void *da
 												\
 		if (!status)									\
 			break;									\
-												\
-		gpu_write(ptdev, __reg_prefix ## _INT_CLEAR, status);				\
 												\
 		__handler(ptdev, status);							\
 		ret = IRQ_HANDLED;								\
