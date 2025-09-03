@@ -171,10 +171,11 @@ static int __power_supply_populate_supplied_from(struct device *dev,
 			break;
 
 		if (np == epsy->of_node) {
-			dev_dbg(&psy->dev, "%s: Found supply : %s\n",
-				psy->desc->name, epsy->desc->name);
+			dev_dbg(&psy->dev, "%s@%px psy->supplied_from = %px: Found supply %d: %s %px\n",  
+				psy->desc->name, psy, psy->supplied_from, i, epsy->desc->name, psy->supplied_from[i-1]);
 			psy->supplied_from[i-1] = (char *)epsy->desc->name;
 			psy->num_supplies++;
+			dev_dbg(&psy->dev, "supply %d is assigned\n", i);
 			of_node_put(np);
 			break;
 		}
@@ -233,7 +234,8 @@ static int power_supply_check_supplies(struct power_supply *psy)
 {
 	struct device_node *np;
 	int cnt = 0;
-
+	size_t sz;
+	
 	/* If there is already a list honor it */
 	if (psy->supplied_from && psy->num_supplies > 0)
 		return 0;
@@ -261,18 +263,24 @@ static int power_supply_check_supplies(struct power_supply *psy)
 	/* Missing valid "power-supplies" entries */
 	if (cnt == 1)
 		return 0;
-
 	/* All supplies found, allocate char ** array for filling */
+#ifdef TRY_PWR_BUG
 	psy->supplied_from = devm_kzalloc(&psy->dev, sizeof(*psy->supplied_from),
 					  GFP_KERNEL);
 	if (!psy->supplied_from)
 		return -ENOMEM;
-
+	sz = sizeof(**psy->supplied_from);
 	*psy->supplied_from = devm_kcalloc(&psy->dev,
-					   cnt - 1, sizeof(**psy->supplied_from),
-					   GFP_KERNEL);
+					   cnt - 1, sz, GFP_KERNEL);
 	if (!*psy->supplied_from)
 		return -ENOMEM;
+#else
+	sz = cnt * sizeof(*psy->supplied_from);
+	psy->supplied_from = devm_kzalloc(&psy->dev, sz, GFP_KERNEL);
+	if (!psy->supplied_from)
+		return -ENOMEM;
+#endif	
+	dev_dbg(&psy->dev, "Found %d supplies buffer = %px size %d bytes\n", cnt, psy->supplied_from, sz);
 
 	return power_supply_populate_supplied_from(psy);
 }

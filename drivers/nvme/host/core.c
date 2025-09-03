@@ -2321,6 +2321,7 @@ static const struct block_device_operations nvme_bdev_ops = {
 
 static int nvme_wait_ready(struct nvme_ctrl *ctrl, u32 timeout, bool enabled)
 {
+	timeout = timeout < 10 ? 10: timeout; // added by Raymond to solve the device not ready issue
 	unsigned long timeout_jiffies = ((timeout + 1) * HZ / 2) + jiffies;
 	u32 csts, bit = enabled ? NVME_CSTS_RDY : 0;
 	int ret;
@@ -2336,8 +2337,8 @@ static int nvme_wait_ready(struct nvme_ctrl *ctrl, u32 timeout, bool enabled)
 			return -EINTR;
 		if (time_after(jiffies, timeout_jiffies)) {
 			dev_err(ctrl->device,
-				"Device not ready; aborting %s, CSTS=0x%x\n",
-				enabled ? "initialisation" : "reset", csts);
+				"Device not ready after %u seconds, aborting %s, CSTS=0x%x\n", timeout/2,
+				enabled ? "initialization" : "reset", csts);
 			return -ENODEV;
 		}
 	}
